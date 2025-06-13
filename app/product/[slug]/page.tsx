@@ -7,7 +7,7 @@ import { useCart } from '../../context/CartContext'
 interface Product {
   id: number
   name: string
-  price: string
+  price: number
   category: string
   image: string
   description?: string
@@ -25,7 +25,10 @@ export default function ProductDetail() {
       const products = JSON.parse(storedProducts)
       const foundProduct = products.find((p: Product) => p.id === Number(params.slug))
       if (foundProduct) {
-        setProduct(foundProduct)
+        setProduct({
+          ...foundProduct,
+          price: Number(foundProduct.price)
+        })
       }
     }
   }, [params.slug])
@@ -45,7 +48,7 @@ export default function ProductDetail() {
     addToCart({
       id: String(product.id),
       name: product.name,
-      price: product.price,
+      price: Number(product.price),
       image: product.image,
       quantity: 1
     })
