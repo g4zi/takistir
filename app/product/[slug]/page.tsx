@@ -49,8 +49,7 @@ export default function ProductDetail() {
       id: String(product.id),
       name: product.name,
       price: Number(product.price),
-      image: product.image,
-      quantity: 1
+      image: product.image
     })
   }
 
