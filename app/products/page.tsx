@@ -1,100 +1,104 @@
-import Image from 'next/image'
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useCart } from '../context/CartContext'
 
-const products = [
-  {
-    id: 1,
-    name: 'Altın Kaplama Yüzük',
-    slug: 'altin-kaplama-yuzuk',
-    price: '1.299',
-    image: '/products/ring1.jpg',
-    category: 'Yüzükler'
-  },
-  {
-    id: 2,
-    name: 'İnci Kolye',
-    slug: 'inci-kolye',
-    price: '899',
-    image: '/products/necklace1.jpg',
-    category: 'Kolyeler'
-  },
-  {
-    id: 3,
-    name: 'Elmas Küpe',
-    slug: 'elmas-kupeler',
-    price: '2.499',
-    image: '/products/earring1.jpg',
-    category: 'Küpeler'
-  },
-  {
-    id: 4,
-    name: 'Gümüş Bileklik',
-    slug: 'gumus-bileklik',
-    price: '599',
-    image: '/products/bracelet1.jpg',
-    category: 'Bileklikler'
-  },
-  // Daha fazla ürün eklenebilir
-]
+interface Product {
+  id: number
+  name: string
+  price: string
+  category: string
+  image: string
+  description?: string
+}
 
-export default function ProductsPage() {
+export default function Products() {
+  const [products, setProducts] = useState<Product[]>([])
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const { addToCart } = useCart()
+
+  useEffect(() => {
+    // Load products from localStorage
+    const storedProducts = localStorage.getItem('products')
+    if (storedProducts) {
+      setProducts(JSON.parse(storedProducts))
+    }
+  }, [])
+
+  const filteredProducts = selectedCategory
+    ? products.filter(product => product.category === selectedCategory)
+    : products
+
+  const categories = ['Yüzükler', 'Kolyeler', 'Küpeler', 'Bileklikler']
+
   return (
-    <main className="min-h-screen py-12 px-4">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Tüm Ürünler</h1>
-        
-        {/* Filters */}
-        <div className="mb-8 flex flex-wrap gap-4">
-          <select className="px-4 py-2 border rounded-lg">
-            <option value="">Kategori Seçin</option>
-            <option value="yuzukler">Yüzükler</option>
-            <option value="kolyeler">Kolyeler</option>
-            <option value="kupeler">Küpeler</option>
-            <option value="bileklikler">Bileklikler</option>
-          </select>
-          
-          <select className="px-4 py-2 border rounded-lg">
-            <option value="">Fiyat Aralığı</option>
-            <option value="0-500">0 - 500 TL</option>
-            <option value="500-1000">500 - 1000 TL</option>
-            <option value="1000-2000">1000 - 2000 TL</option>
-            <option value="2000+">2000 TL ve üzeri</option>
-          </select>
-          
-          <select className="px-4 py-2 border rounded-lg">
-            <option value="">Sıralama</option>
-            <option value="price-asc">Fiyat (Düşükten Yükseğe)</option>
-            <option value="price-desc">Fiyat (Yüksekten Düşüğe)</option>
-            <option value="name-asc">İsim (A-Z)</option>
-            <option value="name-desc">İsim (Z-A)</option>
-          </select>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+            Ürünlerimiz
+          </h2>
+          <p className="mt-4 text-lg text-gray-500">
+            En kaliteli takılarımızı keşfedin
+          </p>
         </div>
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {products.map((product) => (
-            <Link 
-              key={product.id} 
-              href={`/product/${product.slug}`}
-              className="group"
+        <div className="mt-8 flex justify-center space-x-4">
+          <button
+            onClick={() => setSelectedCategory('')}
+            className={`px-4 py-2 rounded-md ${
+              selectedCategory === ''
+                ? 'bg-black text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Tümü
+          </button>
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-4 py-2 rounded-md ${
+                selectedCategory === category
+                  ? 'bg-black text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
             >
-              <div className="relative h-80 rounded-lg overflow-hidden mb-4">
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
+              {category}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-12 grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredProducts.map((product) => (
+            <div key={product.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
+              <Link href={`/product/${product.id}`}>
+                <div className="relative h-64">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </Link>
+              <div className="p-6">
+                <h3 className="text-lg font-medium text-gray-900">{product.name}</h3>
+                <p className="mt-2 text-gray-500">{product.description}</p>
+                <div className="mt-4 flex justify-between items-center">
+                  <span className="text-lg font-bold text-gray-900">{product.price} TL</span>
+                  <button
+                    onClick={() => addToCart(product)}
+                    className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800"
+                  >
+                    Sepete Ekle
+                  </button>
+                </div>
               </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold">{product.name}</h3>
-                <p className="text-gray-600">{product.category}</p>
-                <p className="text-lg font-bold">{product.price} TL</p>
-              </div>
-            </Link>
+            </div>
           ))}
         </div>
       </div>
-    </main>
+    </div>
   )
 } 

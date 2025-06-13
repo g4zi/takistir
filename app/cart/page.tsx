@@ -1,111 +1,109 @@
-import Image from 'next/image'
+'use client'
+
+import { useCart } from '../context/CartContext'
 import Link from 'next/link'
+import Image from 'next/image'
 
-// Bu veri gerçek bir state management sistemi ile yönetilecek
-const cartItems = [
-  {
-    id: 1,
-    name: 'Altın Kaplama Yüzük',
-    slug: 'altin-kaplama-yuzuk',
-    price: '1.299',
-    image: '/products/ring1.jpg',
-    quantity: 1
-  },
-  {
-    id: 2,
-    name: 'İnci Kolye',
-    slug: 'inci-kolye',
-    price: '899',
-    image: '/products/necklace1.jpg',
-    quantity: 2
-  }
-]
+export default function Cart() {
+  const { items, removeFromCart, updateQuantity } = useCart()
 
-export default function CartPage() {
-  const subtotal = cartItems.reduce((total, item) => total + (parseFloat(item.price) * item.quantity), 0)
-  const shipping = 29.99
-  const total = subtotal + shipping
+  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
-  return (
-    <main className="min-h-screen py-12 px-4">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Alışveriş Sepeti</h1>
-
-        {cartItems.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600 mb-4">Sepetinizde ürün bulunmamaktadır.</p>
-            <Link 
-              href="/products" 
-              className="inline-block bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-colors"
+  if (items.length === 0) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center">
+          <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+            Sepetiniz Boş
+          </h2>
+          <p className="mt-4 text-lg text-gray-500">
+            Sepetinizde henüz ürün bulunmuyor.
+          </p>
+          <div className="mt-6">
+            <Link
+              href="/products"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800"
             >
               Alışverişe Başla
             </Link>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Cart Items */}
-            <div className="lg:col-span-2 space-y-4">
-              {cartItems.map((item) => (
-                <div key={item.id} className="flex gap-4 p-4 border rounded-lg">
-                  <div className="relative w-24 h-24 rounded-lg overflow-hidden">
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <Link href={`/product/${item.slug}`} className="font-semibold hover:underline">
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <h1 className="text-3xl font-extrabold text-gray-900 mb-8">Sepetim</h1>
+      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        <ul className="divide-y divide-gray-200">
+          {items.map((item) => (
+            <li key={item.id} className="p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 h-24 w-24 relative">
+                  <Image
+                    src={item.image}
+                    alt={item.name}
+                    fill
+                    className="object-cover rounded-md"
+                  />
+                </div>
+                <div className="ml-6 flex-1">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium text-gray-900">
                       {item.name}
-                    </Link>
-                    <p className="text-gray-600 mt-1">{item.price} TL</p>
-                    <div className="flex items-center gap-4 mt-2">
-                      <div className="flex items-center border rounded-lg">
-                        <button className="px-3 py-1 hover:bg-gray-100">-</button>
-                        <span className="px-3 py-1">{item.quantity}</span>
-                        <button className="px-3 py-1 hover:bg-gray-100">+</button>
-                      </div>
-                      <button className="text-red-600 hover:text-red-700">
-                        Kaldır
-                      </button>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">
-                      {(parseFloat(item.price) * item.quantity).toFixed(2)} TL
+                    </h3>
+                    <p className="text-lg font-medium text-gray-900">
+                      {item.price} TL
                     </p>
                   </div>
+                  <div className="mt-2 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <label htmlFor={`quantity-${item.id}`} className="sr-only">
+                        Miktar
+                      </label>
+                      <select
+                        id={`quantity-${item.id}`}
+                        value={item.quantity}
+                        onChange={(e) =>
+                          updateQuantity(item.id, parseInt(e.target.value))
+                        }
+                        className="rounded-md border-gray-300 py-1.5 text-base leading-5 focus:border-black focus:ring-black sm:text-sm"
+                      >
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                          <option key={num} value={num}>
+                            {num}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <button
+                      onClick={() => removeFromCart(item.id)}
+                      className="text-sm font-medium text-red-600 hover:text-red-500"
+                    >
+                      Kaldır
+                    </button>
+                  </div>
                 </div>
-              ))}
-            </div>
-
-            {/* Order Summary */}
-            <div className="lg:col-span-1">
-              <div className="border rounded-lg p-6 space-y-4">
-                <h2 className="text-xl font-semibold">Sipariş Özeti</h2>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Ara Toplam</span>
-                    <span>{subtotal.toFixed(2)} TL</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Kargo</span>
-                    <span>{shipping.toFixed(2)} TL</span>
-                  </div>
-                  <div className="border-t pt-2 flex justify-between font-semibold">
-                    <span>Toplam</span>
-                    <span>{total.toFixed(2)} TL</span>
-                  </div>
-                </div>
-                <button className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors">
-                  Ödemeye Geç
-                </button>
               </div>
-            </div>
+            </li>
+          ))}
+        </ul>
+        <div className="border-t border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium text-gray-900">Toplam</h3>
+            <p className="text-lg font-medium text-gray-900">{total} TL</p>
           </div>
-        )}
+          <div className="mt-6">
+            <Link
+              href="/checkout"
+              className="w-full flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-black hover:bg-gray-800"
+            >
+              Ödemeye Geç
+            </Link>
+          </div>
+        </div>
       </div>
-    </main>
+    </div>
   )
 } 

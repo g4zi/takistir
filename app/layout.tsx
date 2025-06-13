@@ -3,12 +3,14 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import Header from './components/Header'
 import Footer from './components/Footer'
+import { CartProvider } from './context/CartContext'
+import { AuthProvider } from './context/AuthContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'TAKTAKİSTİR - Özel Tasarım Takılar',
-  description: 'Kaliteli ve özel tasarım takılar için doğru adres.',
+  title: 'Taktakistir - Takı ve Aksesuar Mağazası',
+  description: 'En şık takı ve aksesuarlar için Taktakistir',
 }
 
 export default function RootLayout({
@@ -19,9 +21,15 @@ export default function RootLayout({
   return (
     <html lang="tr">
       <body className={inter.className}>
-        <Header />
-        {children}
-        <Footer />
+        <AuthProvider>
+          <CartProvider>
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-grow">{children}</main>
+              <Footer />
+            </div>
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   )

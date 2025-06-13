@@ -1,94 +1,108 @@
-import Image from 'next/image'
+'use client'
 
-// Bu fonksiyon gerçek bir API'den veri çekecek şekilde güncellenebilir
-async function getProduct(slug: string) {
-  // Örnek veri
-  return {
-    id: 1,
-    name: 'Altın Kaplama Yüzük',
-    slug: 'altin-kaplama-yuzuk',
-    price: '1.299',
-    description: 'Özel tasarım altın kaplama yüzük. El işçiliği ile üretilmiş, zarif ve şık tasarım.',
-    images: [
-      '/products/ring1.jpg',
-      '/products/ring2.jpg',
-      '/products/ring3.jpg',
-    ],
-    details: [
-      'Malzeme: Altın Kaplama',
-      'Boyut: 17mm',
-      'Ağırlık: 5g',
-      'Garanti: 2 Yıl'
-    ],
-    category: 'Yüzükler'
-  }
+import { useState, useEffect } from 'react'
+import { useParams } from 'next/navigation'
+import { useCart } from '../../context/CartContext'
+
+interface Product {
+  id: number
+  name: string
+  price: string
+  category: string
+  image: string
+  description?: string
 }
 
-export default async function ProductPage({ params }: { params: { slug: string } }) {
-  const product = await getProduct(params.slug)
+export default function ProductDetail() {
+  const params = useParams()
+  const { addToCart } = useCart()
+  const [product, setProduct] = useState<Product | null>(null)
+
+  useEffect(() => {
+    // Load product from localStorage
+    const storedProducts = localStorage.getItem('products')
+    if (storedProducts) {
+      const products = JSON.parse(storedProducts)
+      const foundProduct = products.find((p: Product) => p.id === Number(params.slug))
+      if (foundProduct) {
+        setProduct(foundProduct)
+      }
+    }
+  }, [params.slug])
+
+  if (!product) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Ürün bulunamadı</h2>
+          <p className="text-gray-600">Aradığınız ürün mevcut değil veya kaldırılmış olabilir.</p>
+        </div>
+      </div>
+    )
+  }
+
+  const handleAddToCart = () => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      quantity: 1
+    })
+  }
 
   return (
-    <main className="min-h-screen py-12 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {/* Product Images */}
-          <div className="space-y-4">
-            <div className="relative h-[500px] rounded-lg overflow-hidden">
-              <Image
-                src={product.images[0]}
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-x-8">
+          {/* Product Image */}
+          <div className="lg:max-w-lg lg:self-end">
+            <div className="aspect-w-1 aspect-h-1 rounded-lg overflow-hidden">
+              <img
+                src={product.image}
                 alt={product.name}
-                fill
-                className="object-cover"
-                priority
+                className="w-full h-full object-center object-cover"
               />
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              {product.images.slice(1).map((image, index) => (
-                <div key={index} className="relative h-32 rounded-lg overflow-hidden">
-                  <Image
-                    src={image}
-                    alt={`${product.name} - ${index + 2}`}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              ))}
             </div>
           </div>
 
           {/* Product Info */}
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-              <p className="text-gray-600">{product.category}</p>
+          <div className="mt-10 px-4 sm:px-0 sm:mt-16 lg:mt-0">
+            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">{product.name}</h1>
+            <div className="mt-3">
+              <h2 className="sr-only">Ürün bilgileri</h2>
+              <p className="text-3xl text-gray-900">{product.price} TL</p>
             </div>
 
-            <div className="text-2xl font-bold">
-              {product.price} TL
+            <div className="mt-6">
+              <h3 className="sr-only">Açıklama</h3>
+              <div className="text-base text-gray-700 space-y-6">
+                <p>{product.description}</p>
+              </div>
             </div>
 
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Ürün Açıklaması</h2>
-              <p className="text-gray-600">{product.description}</p>
+            <div className="mt-6">
+              <div className="flex items-center">
+                <button
+                  onClick={handleAddToCart}
+                  className="w-full bg-black border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+                >
+                  Sepete Ekle
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Ürün Detayları</h2>
-              <ul className="space-y-2">
-                {product.details.map((detail, index) => (
-                  <li key={index} className="text-gray-600">{detail}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="pt-6">
-              <button className="w-full bg-black text-white py-4 rounded-lg hover:bg-gray-800 transition-colors">
-                Sepete Ekle
-              </button>
+            <div className="mt-6">
+              <h3 className="text-sm font-medium text-gray-900">Kategori</h3>
+              <div className="mt-2">
+                <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                  {product.category}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   )
 } 
