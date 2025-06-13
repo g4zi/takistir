@@ -88,7 +88,12 @@ export default function Products() {
                 <div className="mt-4 flex justify-between items-center">
                   <span className="text-lg font-bold text-gray-900">{product.price} TL</span>
                   <button
-                    onClick={() => addToCart(product)}
+                    onClick={() => addToCart({
+                      id: String(product.id),
+                      name: product.name,
+                      price: Number(product.price),
+                      image: product.image
+                    })}
                     className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800"
                   >
                     Sepete Ekle
